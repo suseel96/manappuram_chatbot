@@ -1,0 +1,8 @@
+numpy==1.24.4
+pandas==2.0.3
+anthropic==0.31.2
+weaviate-client==4.6.5
+translators==5.9.2
+langdetect==1.0.9
+python-dotenv==1.0.1
+openai==1.37.0
