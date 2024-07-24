@@ -136,4 +136,4 @@ class translationUtils:
             )
             return translated_text
         except Exception as e:
-            return False
+            return str(e)
