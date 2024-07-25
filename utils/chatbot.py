@@ -49,6 +49,7 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
                     If you are not able to answer respons saying ''Sorry could not answer''
                     """
         openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         message = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             max_tokens=1024,
@@ -57,7 +58,7 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
         openai_response = message.choices[0].message.content.strip()
         return openai_response
     except Exception as e:
-        return str(e)
+        return False
 
 def chat_interactions(native_lang_input):
     try:

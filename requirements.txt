@@ -6,3 +6,5 @@ translators==5.9.2
 langdetect==1.0.9
 python-dotenv==1.0.1
 openai==1.37.0
+pyexecjs
+nodejs
