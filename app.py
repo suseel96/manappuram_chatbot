@@ -4,7 +4,7 @@ import os
 
 
 def main():
-    image_path = os.path.join(os.getcwd(), 'utils', 'MFL-logo.png')
+    image_path = os.path.join(os.getcwd(), "utils", "MFL-logo.png")
     st.image(
         image_path,
         width=150,
@@ -34,9 +34,7 @@ def main():
 
     # Form to handle user input and submit
     with st.form(key="chat_form"):
-        user_input = st.text_input(
-            "User input:", placeholder="Type your query here..."
-        )
+        user_input = st.text_input("User input:", placeholder="Type your query here...")
         submit_button = st.form_submit_button(label="Send")
 
     # When the form is submitted, get the chatbot response

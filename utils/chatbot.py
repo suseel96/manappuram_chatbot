@@ -48,8 +48,8 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
                     Do not make assumptions or provide information beyond what is explicitly stated in the context and do not respond with anything (conclusive statements like 'according to context' etc) apart from the answer.
                     If you are not able to answer respons saying ''Sorry could not answer''
                     """
-        openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        # openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         message = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             max_tokens=1024,
@@ -62,13 +62,12 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
 
 def chat_interactions(native_lang_input):
     try:
-        # host = os.environ['WEAVIATE_HOST']
-        # port = os.environ['WEAVIATE_PORT']
-        # cohere_api_key = os.environ['COHERE_API_KEY']
-        # additional_headers = {"X-Cohere-Api-Key": cohere_api_key}
-        host = st.secrets["WEAVIATE_HOST"]
-        port = st.secrets["WEAVIATE_PORT"]
-        cohere_api_key = st.secrets["COHERE_API_KEY"]
+        host = os.environ['WEAVIATE_HOST']
+        port = os.environ['WEAVIATE_PORT']
+        cohere_api_key = os.environ['COHERE_API_KEY']
+        # host = st.secrets["WEAVIATE_HOST"]
+        # port = st.secrets["WEAVIATE_PORT"]
+        # cohere_api_key = st.secrets["COHERE_API_KEY"]
         additional_headers = {"X-Cohere-Api-Key": cohere_api_key}
         weaviate_obj = weaviateUtils(host, port, additional_headers)
         default_error_msg = "Sorry, could not answer your query. Please try again."
@@ -93,7 +92,7 @@ def chat_interactions(native_lang_input):
         context = df.head(2)[['title','section','subsection','content']].to_json(orient='records')
         # llm_response = questionAnsweringUsingClaude(context, en_lang_input)
         llm_response = questionAnsweringUsingOpenai(context, en_lang_input)
-        if not default_error_msg:
+        if not llm_response:
             return default_error_msg
 
         if src_lang != 'en':
