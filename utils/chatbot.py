@@ -48,8 +48,8 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
                     Do not make assumptions or provide information beyond what is explicitly stated in the context and do not respond with anything (conclusive statements like 'according to context' etc) apart from the answer.
                     If you are not able to answer respons saying ''Sorry could not answer''
                     """
-        # openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+        openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         message = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             max_tokens=1024,
@@ -62,29 +62,27 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
 
 def chat_interactions(native_lang_input):
     try:
-        host = os.environ['WEAVIATE_HOST']
-        port = os.environ['WEAVIATE_PORT']
-        cohere_api_key = os.environ['COHERE_API_KEY']
-        # host = st.secrets["WEAVIATE_HOST"]
-        # port = st.secrets["WEAVIATE_PORT"]
-        # cohere_api_key = st.secrets["COHERE_API_KEY"]
+        # host = os.environ['WEAVIATE_HOST']
+        # port = os.environ['WEAVIATE_PORT']
+        # cohere_api_key = os.environ['COHERE_API_KEY']
+        host = st.secrets["WEAVIATE_HOST"]
+        port = st.secrets["WEAVIATE_PORT"]
+        cohere_api_key = st.secrets["COHERE_API_KEY"]
         additional_headers = {"X-Cohere-Api-Key": cohere_api_key}
         weaviate_obj = weaviateUtils(host, port, additional_headers)
         default_error_msg = "Sorry, could not answer your query. Please try again."
         translation_obj = translationUtils()
-        src_lang = translation_obj.detectLang(native_lang_input)
+        transliteration_resp = translation_obj.transliterateInput(native_lang_input)
+        if not transliteration_resp:
+            return default_error_msg
+        src_lang, en_lang_input = (
+            transliteration_resp["src_lang"],
+            transliteration_resp["english_text"],
+        )
+        
         if src_lang is None:
             return default_error_msg
-        elif src_lang != 'en':
-            en_lang_input = translation_obj.translateText(
-                source_language=src_lang,
-                target_language="en",
-                native_lang_input=native_lang_input,
-            )
-            if not en_lang_input:
-                return default_error_msg
-        else:
-            en_lang_input = native_lang_input
+
         vector_search_response = weaviate_obj.performVectorSearch(en_lang_input)
         df = pd.DataFrame(vector_search_response['data']['Get']['Manapuram'])
         df = pd.concat([df, pd.json_normalize(df['_additional'])], axis=1).drop('_additional', axis=1)

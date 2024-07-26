@@ -1,4 +1,7 @@
 import translators as ts
+from openai import OpenAI
+import os
+import json
 from langdetect import detect, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
 
@@ -117,7 +120,6 @@ class translationUtils:
             "zu": "Zulu",
         }
 
-
     def detectLang(self, native_lang_input):
         try:
             DetectorFactory.seed = 0
@@ -135,5 +137,28 @@ class translationUtils:
                 to_language=target_language,
             )
             return translated_text
+        except Exception as e:
+            return False
+
+    def transliterateInput(self, native_lang_input):
+        try:
+            transliteration_prompt = f'''Step-1: Identify the language of the input text.
+                                        Step-2: Convert the input text into English.
+
+                                        Provide response in the below format:
+                                        {{"src_lang":"te",
+                                        "english_text":"..."}}
+                                        
+                                        input_text = {native_lang_input} '''
+            openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+            message = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                max_tokens=1024,
+                messages=[{"role": "user", "content": transliteration_prompt}],
+            )
+            openai_response = message.choices[0].message.content.strip()
+            openai_response = json.loads(openai_response)
+            return openai_response
         except Exception as e:
             return False
