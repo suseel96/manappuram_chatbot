@@ -27,7 +27,9 @@ class weaviateUtils:
 
     def performVectorSearch(self, en_lang_input):
         vector_search_response = (
-            self.client.query.get("Manapuram", ["title", "section", "subsection", "content"])
+            self.client.query.get(
+                "Manapuram_v1", ["title", "section", "subsection", "content"]
+            )
             .with_hybrid(
                 query=en_lang_input,
             )

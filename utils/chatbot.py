@@ -43,10 +43,12 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
         qa_prompt = f"""Given the following context, please answer the question using the context:
                     Context: {context}
                     Question: {en_lang_input}
-                    Provide a concise answer based solely on the information given in the context. 
+                    Provide a detailed answer based solely on the information given in the context. 
                     If the information is not present in the context, state that you don't have enough information to answer. 
                     Do not make assumptions or provide information beyond what is explicitly stated in the context and do not respond with anything (conclusive statements like 'according to context' etc) apart from the answer.
                     If you are not able to answer respons saying ''Sorry could not answer''
+                    
+                    Answer: Let's think step by step.
                     """
         openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -60,7 +62,8 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
     except Exception as e:
         return False
 
-def chat_interactions(native_lang_input):
+
+def chat_interactions(selected_language, native_lang_input):
     try:
         # host = os.environ['WEAVIATE_HOST']
         # port = os.environ['WEAVIATE_PORT']
@@ -72,19 +75,21 @@ def chat_interactions(native_lang_input):
         weaviate_obj = weaviateUtils(host, port, additional_headers)
         default_error_msg = "Sorry, could not answer your query. Please try again."
         translation_obj = translationUtils()
-        transliteration_resp = translation_obj.transliterateInput(native_lang_input)
-        if not transliteration_resp:
-            return default_error_msg
-        src_lang, en_lang_input = (
-            transliteration_resp["src_lang"],
-            transliteration_resp["english_text"],
-        )
-        
-        if src_lang is None:
-            return default_error_msg
+        selected_language_code = [
+            i for i, j in translation_obj.language_map.items() if j == selected_language
+        ][0]
 
+        if selected_language_code != 'en':
+            transliteration_resp = translation_obj.transliterateInput(
+                selected_language, native_lang_input
+            )
+            if not transliteration_resp:
+                return default_error_msg
+            en_lang_input = transliteration_resp
+        else:
+            en_lang_input = native_lang_input
         vector_search_response = weaviate_obj.performVectorSearch(en_lang_input)
-        df = pd.DataFrame(vector_search_response['data']['Get']['Manapuram'])
+        df = pd.DataFrame(vector_search_response["data"]["Get"]["Manapuram_v1"])
         df = pd.concat([df, pd.json_normalize(df['_additional'])], axis=1).drop('_additional', axis=1)
         df.sort_values('score', ascending=False, inplace=True)
         context = df.head(2)[['title','section','subsection','content']].to_json(orient='records')
@@ -93,15 +98,14 @@ def chat_interactions(native_lang_input):
         if not llm_response:
             return default_error_msg
 
-        if src_lang != 'en':
+        if selected_language_code != 'en':
             final_resp = translation_obj.translateText(
                 source_language="en",
-                target_language=src_lang,
+                target_language=selected_language_code,
                 native_lang_input=llm_response,
             )
         else:
             final_resp = llm_response
-
         return final_resp
     except Exception as e:
         return default_error_msg

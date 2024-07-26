@@ -121,14 +121,6 @@ class translationUtils:
             "zu": "Zulu",
         }
 
-    def detectLang(self, native_lang_input):
-        try:
-            DetectorFactory.seed = 0
-            language = detect(native_lang_input)
-            return language
-        except LangDetectException:
-            return None
-
     def translateText(self, source_language, target_language, native_lang_input):
         try:
             translated_text = ts.translate_text(
@@ -141,25 +133,27 @@ class translationUtils:
         except Exception as e:
             return False
 
-    def transliterateInput(self, native_lang_input):
+    def transliterateInput(self, selected_language, native_lang_input):
         try:
-            transliteration_prompt = f'''Step-1: Identify the language of the input text.
-                                        Step-2: Convert the input text into English.
+            # transliteration_prompt = f'''Step-1: Identify the language of the input text.
+            #                             Step-2: Convert the input text into English.
 
-                                        Provide response in the below format:
-                                        {{"src_lang":"te",
-                                        "english_text":"..."}}
-                                        
-                                        input_text = {native_lang_input} '''
+            #                             Provide response in the below format:
+            #                             {{"src_lang":"te",
+            #                             "english_text":"..."}}
+
+            # input_text = {native_lang_input} '''
+            transliteration_prompt = f"""Convert this {selected_language} text to English language
+                                        Provide only the converted text in the output and nothing apart from it.
+                                        input_text = {native_lang_input} """
             openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
             # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
             message = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4",
                 max_tokens=1024,
                 messages=[{"role": "user", "content": transliteration_prompt}],
             )
             openai_response = message.choices[0].message.content.strip()
-            openai_response = json.loads(openai_response)
             return openai_response
         except Exception as e:
             return False

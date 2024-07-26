@@ -1,7 +1,7 @@
 from utils.chatbot import chat_interactions
 import streamlit as st
 import os
-
+from utils.translation import translationUtils
 
 def main():
     image_path = os.path.join(os.getcwd(), "utils", "MFL-logo.png")
@@ -34,14 +34,28 @@ def main():
 
     # Form to handle user input and submit
     with st.form(key="chat_form"):
-        user_input = st.text_input("User input:", placeholder="Type your query here...")
+        col1, col2 = st.columns([1, 3])
+
+        with col1:
+            options = list(translationUtils().language_map.values())
+            selected_language = st.selectbox(
+                "Select language",
+                options,
+                index=list(translationUtils().language_map.values()).index('English'),
+            )
+        with col2:
+            user_input = st.text_input(
+                "User input:", placeholder="Type your query here..."
+            )
+
         submit_button = st.form_submit_button(label="Send")
 
     # When the form is submitted, get the chatbot response
     if submit_button and user_input:
-        response = chat_interactions(user_input)
+        response = chat_interactions(selected_language, user_input)
         st.markdown(response)
 
 
 if __name__ == "__main__":
     main()
+
