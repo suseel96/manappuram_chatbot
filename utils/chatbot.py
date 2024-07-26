@@ -46,10 +46,7 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
                     Provide a detailed answer based solely on the information given in the context. 
                     If the information is not present in the context, state that you don't have enough information to answer. 
                     Do not make assumptions or provide information beyond what is explicitly stated in the context and do not respond with anything (conclusive statements like 'according to context' etc) apart from the answer.
-                    If you are not able to answer respons saying ''Sorry could not answer''
-                    
-                    Answer: Let's think step by step.
-                    """
+                    If you are not able to answer respons saying ''Sorry could not answer''                    """
         openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
         # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         message = openai_client.chat.completions.create(
