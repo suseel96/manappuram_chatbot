@@ -43,12 +43,12 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
         qa_prompt = f"""Given the following context, please answer the question using the context:
                     Context: {context}
                     Question: {en_lang_input}
-                    Provide a detailed answer based solely on the information given in the context. 
+                    Provide a detailed answer based solely on the information given in the context.
+                    Make sure the response does not exceed 1000 characters.
                     If the information is not present in the context, state that you don't have enough information to answer. 
                     Do not make assumptions or provide information beyond what is explicitly stated in the context and do not respond with anything (conclusive statements like 'according to context' etc) apart from the answer.
                     If you are not able to answer respons saying ''Sorry could not answer''                    """
         openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
         message = openai_client.chat.completions.create(
             model="gpt-3.5-turbo",
             max_tokens=1024,
@@ -62,9 +62,6 @@ def questionAnsweringUsingOpenai(context, en_lang_input):
 
 def chat_interactions(selected_language, native_lang_input):
     try:
-        # host = os.environ['WEAVIATE_HOST']
-        # port = os.environ['WEAVIATE_PORT']
-        # cohere_api_key = os.environ['COHERE_API_KEY']
         host = st.secrets["WEAVIATE_HOST"]
         port = st.secrets["WEAVIATE_PORT"]
         cohere_api_key = st.secrets["COHERE_API_KEY"]
@@ -91,18 +88,20 @@ def chat_interactions(selected_language, native_lang_input):
         df.sort_values('score', ascending=False, inplace=True)
         context = df.head(2)[['title','section','subsection','content']].to_json(orient='records')
         # llm_response = questionAnsweringUsingClaude(context, en_lang_input)
-        llm_response = questionAnsweringUsingOpenai(context, en_lang_input)
-        if not llm_response:
+        en_llm_response = questionAnsweringUsingOpenai(context, en_lang_input)
+        if not en_llm_response:
             return default_error_msg
 
         if selected_language_code != 'en':
             final_resp = translation_obj.translateText(
                 source_language="en",
                 target_language=selected_language_code,
-                native_lang_input=llm_response,
+                native_lang_input=en_llm_response,
             )
+            if not final_resp:
+                final_resp = default_error_msg
         else:
-            final_resp = llm_response
-        return final_resp
+            final_resp = en_llm_response
+        return final_resp, en_llm_response
     except Exception as e:
-        return default_error_msg
+        return default_error_msg, en_llm_response

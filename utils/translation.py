@@ -147,7 +147,6 @@ class translationUtils:
                                         Provide only the converted text in the output and nothing apart from it.
                                         input_text = {native_lang_input} """
             openai_client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-            # openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
             message = openai_client.chat.completions.create(
                 model="gpt-4",
                 max_tokens=1024,

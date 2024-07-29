@@ -3,7 +3,9 @@ import streamlit as st
 import os
 from utils.translation import translationUtils
 
+
 def main():
+    max_retries = 2
     image_path = os.path.join(os.getcwd(), "utils", "MFL-logo.png")
     st.image(
         image_path,
@@ -41,7 +43,7 @@ def main():
             selected_language = st.selectbox(
                 "Select language",
                 options,
-                index=list(translationUtils().language_map.values()).index('English'),
+                index=list(translationUtils().language_map.values()).index("English"),
             )
         with col2:
             user_input = st.text_input(
@@ -52,10 +54,16 @@ def main():
 
     # When the form is submitted, get the chatbot response
     if submit_button and user_input:
-        response = chat_interactions(selected_language, user_input)
+        try_count = 1
+        response = en_llm_response = "Sorry could not answer"
+        while (try_count <= max_retries) and (
+            en_llm_response == "Sorry could not answer"
+        ):
+            response, en_llm_response = chat_interactions(selected_language, user_input)
+            print(en_llm_response, try_count)
+            try_count += 1
         st.markdown(response)
 
 
 if __name__ == "__main__":
     main()
-

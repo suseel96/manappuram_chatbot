@@ -161,3 +161,7 @@ cython_debug/
 #.idea/
 
 hugging_face_models/
+
+# streamlit secrets
+
+secrets.toml
